@@ -1,0 +1,11 @@
+sqlite> CREATE TABLE users (
+   ...> userId INTEGER PRIMARY KEY AUTOINCREMENT,
+   ...> username TEXT NOT NULL UNIQUE,
+   ...> password TEXT NOT NULL
+   ...> );
+sqlite> INSERT INTO users (username, password) VALUES ('Aashv', 'mySecurePassword');
+sqlite> INSERT INTO users (username, password) VALUES ('JohnDoe', 'anotherPassword');
+sqlite> SELECT * FROM users;
+1|Aashv|mySecurePassword
+2|JohnDoe|anotherPassword
+sqlite> .exit
