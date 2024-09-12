@@ -54,8 +54,21 @@ def register():
     reg = Tk()
     reg.geometry("600x400")
     reg.title("Register")
+
+    treg_frame = Frame(reg)
+    treg_frame.place(relx=0, rely=0, relheight=0.4, relwidth=1)
+    mreg_frame = Frame(reg)
+    mreg_frame.place(relx=0, rely=0.4, relheight=0.4, relwidth=1)
+    breg_frame = Frame(reg)
+    breg_frame.place(relx=0, rely=0.8, relheight=0.2, relwidth=1)
+
+    usren_var = StringVar()
+    pwd_var = StringVar()
+
+    usren_lbl = Label(treg_frame, text="Register", font=("Papyrus", 50))
+    usren_lbl.place(relx=0.5, rely=0.5, anchor="center", relheight=1, relwidth=1)
+
     username = input("Enter a new username: ").strip()
-    # password = getpass.getpass("Enter your password: ").strip()
     password = getpass.getpass("Enter a new password: ").strip()
 
     conn = sqlite3.connect('my_database.db')
