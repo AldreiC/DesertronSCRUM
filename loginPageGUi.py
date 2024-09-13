@@ -5,7 +5,7 @@ from tkinter import messagebox
 
 
 def create_table():
-    conn = sqlite3.connect('my_database.db')
+    conn = sqlite3.connect('PWP_database.db')
     cursor = conn.cursor()
 
     cursor.execute('''
@@ -21,7 +21,7 @@ def create_table():
 
 
 def display_table():
-    conn = sqlite3.connect('my_database.db')
+    conn = sqlite3.connect('PWP_database.db')
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM users")
     rows = cursor.fetchall()
@@ -37,7 +37,7 @@ def display_table():
 
 
 def wipe_table():
-    conn = sqlite3.connect('my_database.db')
+    conn = sqlite3.connect('PWP_database.db')
     cursor = conn.cursor()
     cursor.execute('DELETE FROM users')
     cursor.execute('DELETE FROM sqlite_sequence WHERE name="users"')
@@ -93,7 +93,7 @@ def register_code(usr, pwd, reg_window):
         messagebox.showinfo("Error", "Username and Password cannot be empty.")
         return
 
-    conn = sqlite3.connect('my_database.db')
+    conn = sqlite3.connect('PWP_database.db')
     cursor = conn.cursor()
 
     try:
@@ -151,7 +151,7 @@ def login_code(user, passw, log_window):
     username2 = user.get().strip()
     password2 = passw.get().strip()
 
-    conn = sqlite3.connect('my_database.db')
+    conn = sqlite3.connect('PWP_database.db')
     cursor = conn.cursor()
 
     cursor.execute('SELECT * FROM users WHERE username = ? AND password = ?', (username2, password2))
