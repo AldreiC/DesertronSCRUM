@@ -1,3 +1,4 @@
+import datetime
 import sqlite3
 from tkinter import *
 from tkinter import messagebox
@@ -42,7 +43,7 @@ def wipe_table():
     cursor.execute('DELETE FROM sqlite_sequence WHERE name="users"')
     conn.commit()
 
-    messagebox.showinfo("Wipe Table", "All records in the users table have been wiped and userId reset to 1.")
+    print("All records in the users table have been wiped and userId reset to 1.")
 
     conn.close()
 
@@ -158,6 +159,7 @@ def login_code(user, passw, log_window):
 
     if result:
         messagebox.showinfo("Success", "Logged in successfully!")
+        print(username2 + " has logged in at " + datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') + ".")
         log_window.destroy()  
     else:
         retry = messagebox.askretrycancel("Failure", "Username or password incorrect. Try again or register a new account.")
@@ -198,5 +200,6 @@ def main():
 
 
 if __name__ == "__main__":
+    #wipe_table()
     main()
-    display_table()
+    #display_table()
