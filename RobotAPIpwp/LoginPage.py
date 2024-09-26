@@ -1,5 +1,6 @@
 import datetime
 import sqlite3
+import requests
 from tkinter import *
 from tkinter import messagebox
 
@@ -148,6 +149,7 @@ def login():
 
 
 def login_code(user, passw, log_window):
+    succesfulLogin = 0
     username2 = user.get().strip()
     password2 = passw.get().strip()
 
@@ -161,16 +163,28 @@ def login_code(user, passw, log_window):
         messagebox.showinfo("Success", "Logged in successfully!")
         print(username2 + " has logged in at " + datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') + ".")
         log_window.destroy()  
+        succesfulLogin = 1
+
+        try:
+            response = requests.post('http://127.0.0.1:5000/open_controller')
+            if response.status_code == 200:
+                print("Controller launched successfully.")
+            else:
+                print("Failed to launch controller:", response.status_code)
+        except Exception as e:
+            print("Error connecting to the controller:", e)
+
     else:
         retry = messagebox.askretrycancel("Failure", "Username or password incorrect. Try again or register a new account.")
-        log_window.destroy()  
+        log_window.destroy()
+       
         if retry:
             login()  
         else:
             register()  
-
+    
     conn.close()
-
+    return succesfulLogin
 
 def main():
     create_table()
@@ -195,7 +209,7 @@ def main():
     log_btn.place(relx=0.75, rely=0.5, anchor="center", relheight=0.4, relwidth=0.4)
     ext_btn = Button(b_frame, text="Exit", font=("Papyrus", 25), command=root.destroy)
     ext_btn.place(relx=0.5, rely=0.5, anchor="center", relheight=0.5, relwidth=0.2)
-
+    
     root.mainloop()
 
 
