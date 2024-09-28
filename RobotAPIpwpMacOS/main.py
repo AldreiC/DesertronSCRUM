@@ -25,7 +25,6 @@ def start_flask_in_thread():
 
 
 class ControlGUI(Tk):
-    """Tkinter-based control GUI."""
     def __init__(self):
         super().__init__()
         self.geometry("400x400")
@@ -51,7 +50,7 @@ class ControlGUI(Tk):
         print(f"Sending command: {bin(binary_value)}")
 
         # Here, you can add code to actually send this command to your motor controller
-        # e.g., via serial communication or GPIO pins on a Raspberry Pi
+    
 
 
 
