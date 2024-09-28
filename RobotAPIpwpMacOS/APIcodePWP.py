@@ -11,7 +11,7 @@ def send_command():
     data = request.get_json()
     command = data.get('command')
 
-    # Send command to the GUI via HTTP POST request to the Tkinter app
+    # Send command to the GUI via HTTP POST request to the app
     response = requests.post('http://127.0.0.1:5001/command', json={'command': command})
     
     return jsonify({"status": f"Command '{command}' sent to GUI", "response": response.json()}), 200
