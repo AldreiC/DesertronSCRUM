@@ -149,7 +149,7 @@ def login():
 
 
 def login_code(user, passw, log_window):
-    succesfulLogin = 0
+    succesfulLogin = False  # Default to failure
     username2 = user.get().strip()
     password2 = passw.get().strip()
 
@@ -162,29 +162,30 @@ def login_code(user, passw, log_window):
     if result:
         messagebox.showinfo("Success", "Logged in successfully!")
         print(username2 + " has logged in at " + datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') + ".")
-        log_window.destroy()  
-        succesfulLogin = 1
+        log_window.destroy()
+        succesfulLogin = True  # Set success flag
 
         try:
-            response = requests.post('http://127.0.0.1:5000/open_controller')
+            
+            response = requests.post('http://127.0.0.1:5000/command')
             if response.status_code == 200:
                 print("Controller launched successfully.")
             else:
                 print("Failed to launch controller:", response.status_code)
         except Exception as e:
             print("Error connecting to the controller:", e)
-
     else:
         retry = messagebox.askretrycancel("Failure", "Username or password incorrect. Try again or register a new account.")
         log_window.destroy()
-       
+
         if retry:
-            login()  
+            login()  # Restart the login process
         else:
-            register()  
-    
+            register()  # Open registration
+        
     conn.close()
-    return succesfulLogin
+    return succesfulLogin  # Return success status
+
 
 def main():
     create_table()
