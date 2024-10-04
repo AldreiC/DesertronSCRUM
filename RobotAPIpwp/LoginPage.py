@@ -4,7 +4,7 @@ import requests
 from tkinter import *
 from tkinter import messagebox
 
-
+successfulLogin = None
 def create_table():
     conn = sqlite3.connect('PWP_database.db')
     cursor = conn.cursor()
@@ -149,7 +149,7 @@ def login():
 
 
 def login_code(user, passw, log_window):
-    succesfulLogin = False  # Default to failure
+    successfulLogin = False  # Default to failure
     username2 = user.get().strip()
     password2 = passw.get().strip()
 
@@ -163,10 +163,9 @@ def login_code(user, passw, log_window):
         messagebox.showinfo("Success", "Logged in successfully!")
         print(username2 + " has logged in at " + datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') + ".")
         log_window.destroy()
-        succesfulLogin = True  # Set success flag
+        successfulLogin = True  # Set success flag
 
         try:
-            
             response = requests.post('http://127.0.0.1:5000/command')
             if response.status_code == 200:
                 print("Controller launched successfully.")
@@ -184,10 +183,14 @@ def login_code(user, passw, log_window):
             register()  # Open registration
         
     conn.close()
-    return succesfulLogin  # Return success status
-
+    return successfulLogin  # Return success status
+def destroy(root):
+    global successfulLogin
+    successfulLogin = False
+    root.destroy()
 
 def main():
+    global successfulLogin
     create_table()
 
     root = Tk()
@@ -208,11 +211,11 @@ def main():
     reg_btn.place(relx=0.25, rely=0.5, anchor="center", relheight=0.4, relwidth=0.4)
     log_btn = Button(m_frame, text="Login", font=("Papyrus", 40), command=login)
     log_btn.place(relx=0.75, rely=0.5, anchor="center", relheight=0.4, relwidth=0.4)
-    ext_btn = Button(b_frame, text="Exit", font=("Papyrus", 25), command=root.destroy)
+    ext_btn = Button(b_frame, text="Exit", font=("Papyrus", 25), command=lambda: destroy(root))
     ext_btn.place(relx=0.5, rely=0.5, anchor="center", relheight=0.5, relwidth=0.2)
     
     root.mainloop()
-
+    return successfulLogin
 
 if __name__ == "__main__":
     #wipe_table()
