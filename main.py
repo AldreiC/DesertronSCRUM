@@ -18,33 +18,29 @@ motor2.decay_mode = (
     motor.SLOW_DECAY
 )
 
-print("Forwards slow")
-motor1.throttle = 0.5
-print("throttle:", motor1.throttle)
-time.sleep(1)
-
 print("Forwards")
-motor1.throttle = 1
-print("throttle:", motor1.throttle)
-time.sleep(1)
-
-print("Backwards")
-motor1.throttle = -1
-print("throttle:", motor1.throttle)
+motor1.throttle = 0.5
+motor2.throttle = 0.5
 time.sleep(1)
 
 print("Backwards slow")
 motor1.throttle = -0.5
-print("throttle:", motor1.throttle)
+motor2.throttle = -0.5
+time.sleep(1)
+
+print("Left")
+motor1.throttle = 0
+motor2.throttle = 0.5
+time.sleep(1)
+
+print("Right")
+motor1.throttle = 0.5
+motor2.throttle = 0
 time.sleep(1)
 
 print("Stop")
 motor1.throttle = 0
-print("throttle:", motor1.throttle)
+motor2.throttle = 0
 time.sleep(1)
-
-print("Spin freely")
-motor1.throttle = None
-print("throttle:", motor1.throttle)
 
 pca.deinit()
