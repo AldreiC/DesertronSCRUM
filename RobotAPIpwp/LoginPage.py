@@ -166,7 +166,7 @@ def login_code(user, passw, log_window):
         successfulLogin = True  # Set success flag
 
         try:
-            response = requests.post('http://127.0.0.1:5000/command')
+            response = requests.post('http://192.168.1.74/command')
             if response.status_code == 200:
                 print("Controller launched successfully.")
             else:

@@ -12,9 +12,9 @@ def send_command():
     command = data.get('command')
 
     # Send command to the GUI via HTTP POST request to the app
-    response = requests.post('http://127.0.0.1:5001/command', json={'command': command})
+    response = requests.post('http://192.168.1.74:5000/action', json={'action': command})
     return jsonify(), 200
     #return jsonify({"status": f"Command '{command}' sent to GUI", "response": response.json()}), 200
 
 if __name__ == '__main__':
-    app.run(debug=False, port=5000)
+    app.run(host = "0.0.0.0", debug=False, port=2223)
