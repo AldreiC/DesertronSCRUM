@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+    <style>
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 10px;
+            height: 100vh;
+        }
+        .panel { border: 1px solid #ddd; padding: 10px; }
+        .left-panel, .robot-control, .command-log, .login-log { overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <h2>Welcome, {{ username }}</h2>
+    <div class="grid-container">
+        <div class="panel left-panel"></div>
+        <div class="panel left-panel"></div>
+        
+        <div class="panel robot-control">
+            <h3>Robot Control</h3>
+            <button onclick="sendCommand('forward')">Forward</button>
+            <button onclick="sendCommand('backward')">Backward</button>
+            <button onclick="sendCommand('left')">Left</button>
+            <button onclick="sendCommand('right')">Right</button>
+            <button onclick="sendCommand('stop')">Stop</button>
+            <button onclick="sendCommand('FTLeft')">Fine Tune Left</button>
+            <button onclick="sendCommand('FTRight')">Fine Tune Right</button>
+        </div>
+        
+        <div class="panel login-log">
+            <h3>Login Log</h3>
+            <ul>
+                {% for log in logs %}
+                    <li>{{ log }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="panel command-log">
+            <h3>Command Log</h3>
+            <ul>
+                {% for log in command_logs %}
+                    <li>{{ log.timestamp }} - Command: {{ log.command }} - Status: {{ log.status }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        async function sendCommand(action) {
+            const response = await fetch('/send-command', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ command: action })
+            });
+            const result = await response.json();
+            console.log(result.status);
+            alert(result.status);  // Optional feedback
+        }
+    </script>    
+</body>
+</html>
