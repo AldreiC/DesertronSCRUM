@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard</title>
+    <title>Robot Control Dashboard</title>
     <style>
         .grid-container {
             display: grid;
@@ -11,8 +11,40 @@
             gap: 10px;
             height: 100vh;
         }
-        .panel { border: 1px solid #ddd; padding: 10px; }
-        .left-panel, .robot-control, .command-log, .login-log { overflow-y: auto; }
+        .panel {
+            border: 1px solid #ddd;
+            padding: 10px;
+        }
+        .left-panel, .command-log, .login-log {
+            overflow-y: auto;
+        }
+        .robot-control {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 300px;
+        }
+        .control-grid {
+            display: grid;
+            grid-template-columns: 100px 100px 100px;
+            grid-template-rows: 100px 100px 100px;
+            gap: 10px;
+        }
+        .control-grid button {
+            width: 100px;
+            height: 100px;
+            font-size: 14px;
+            background-color: #87CEFA;
+            border: none;
+            cursor: pointer;
+        }
+        .forward { grid-column: 2; grid-row: 1; }
+        .backward { grid-column: 2; grid-row: 3; }
+        .left { grid-column: 1; grid-row: 2; }
+        .right { grid-column: 3; grid-row: 2; }
+        .fine-tune-left { grid-column: 1; grid-row: 1; }
+        .fine-tune-right { grid-column: 3; grid-row: 1; }
+        .stop { grid-column: 2; grid-row: 2; background-color: #FF6347; } /* Red color for Stop button */
     </style>
 </head>
 <body>
@@ -23,13 +55,15 @@
         
         <div class="panel robot-control">
             <h3>Robot Control</h3>
-            <button onclick="sendCommand('forward')">Forward</button>
-            <button onclick="sendCommand('backward')">Backward</button>
-            <button onclick="sendCommand('left')">Left</button>
-            <button onclick="sendCommand('right')">Right</button>
-            <button onclick="sendCommand('stop')">Stop</button>
-            <button onclick="sendCommand('FTLeft')">Fine Tune Left</button>
-            <button onclick="sendCommand('FTRight')">Fine Tune Right</button>
+            <div class="control-grid">
+                <button class="fine-tune-left" onclick="sendCommand('FTLeft')">Fine Tune Left</button>
+                <button class="forward" onclick="sendCommand('forward')">Forward</button>
+                <button class="fine-tune-right" onclick="sendCommand('FTRight')">Fine Tune Right</button>
+                <button class="left" onclick="sendCommand('left')">Left</button>
+                <button class="stop" onclick="sendCommand('stop')">Stop</button>
+                <button class="right" onclick="sendCommand('right')">Right</button>
+                <button class="backward" onclick="sendCommand('backward')">Backward</button>
+            </div>
         </div>
         
         <div class="panel login-log">
@@ -62,6 +96,6 @@
             console.log(result.status);
             alert(result.status);  // Optional feedback
         }
-    </script>    
+    </script>
 </body>
 </html>
