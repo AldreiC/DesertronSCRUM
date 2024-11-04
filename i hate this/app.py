@@ -71,29 +71,59 @@ def send_command():
 
 @app.route('/start-robot', methods=['POST'])
 @app.route('/start-robot', methods=['POST'])
+import subprocess
+from flask import jsonify, request
+from datetime import datetime
+
+# Global variables for the robot's state and command logs
+StartStatus = False
+command_logs = []
+RPI_USER = 'your_username'  # Set your Raspberry Pi username
+RPI_IP = 'your_ip_address'   # Set your Raspberry Pi IP address
+
 def start_robot():
+    global StartStatus  # Ensure we modify the global StartStatus
     Strat = request.json.get('action')
-    message = "" 
+    message = ""
 
     if Strat == "start":
-        try:
-            
-            ssh_command = f"ssh {RPI_USER}@{RPI_IP} 'python3 RasperryPiControl.py'"
-            result = subprocess.run(ssh_command, shell=True, capture_output=True, text=True)
+        if not StartStatus:  # Only start if it isn't already running
+            try:
+                ssh_command = f"ssh {RPI_USER}@{RPI_IP} 'python3 RasperryPiControl.py'"
+                result = subprocess.run(ssh_command, shell=True, capture_output=True, text=True)
+                if result.returncode == 0:
+                    StartStatus = True
+                    message = "Robot started successfully."
+                else:
+                    message = f"Failed to start RasperryPiControl.py, exit code: {result.returncode}"
 
-            if result.returncode == 0:
-                message = "Robot started successfully."
-            else:
-                message = f"Failed to start RasperryPiControl.py, exit code: {result.returncode}"
+            except Exception as e:
+                message = f"Exception occurred: {str(e)}"
+        else:
+            message = "Robot is already running."
 
-        except Exception as e:
-            message = f"Exception occurred: {str(e)}"
+    elif Strat == "exit":
+        if StartStatus:  # Only stop if it is running
+            try:
+                ssh_command = f"ssh {RPI_USER}@{RPI_IP} 'pkill -f RasperryPiControl.py'"  # Replace with the appropriate command to stop
+                result = subprocess.run(ssh_command, shell=True, capture_output=True, text=True)
+                if result.returncode == 0:
+                    StartStatus = False
+                    message = "Robot stopped successfully."
+                else:
+                    message = f"Failed to stop RasperryPiControl.py, exit code: {result.returncode}"
+            except Exception as e:
+                message = f"Exception occurred: {str(e)}"
+        else:
+            message = "The robot is not currently running."
+
     else:
-        message = "Invalid action specified."
+        message = "Invalid action. Use 'start' or 'exit'."
 
-    command_logs.append({"command": "start", "timestamp": datetime.now(), "status": message})
-    print("started.. hopefully")
+    command_logs.append({"command": Strat, "timestamp": datetime.now(), "status": message})
+    print("Command executed:", message)
     return jsonify({"status": message})
+
 
 if __name__ == '__main__':
     app.run(debug=True)
