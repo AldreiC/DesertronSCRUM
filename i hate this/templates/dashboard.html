@@ -14,26 +14,30 @@
         .panel {
             border: 1px solid #ddd;
             padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
-        .left-panel, .command-log, .login-log {
-            overflow-y: auto;
+        .robot-control h3, .login-log h3, .command-log h3 {
+            margin-bottom: 10px;
         }
         .robot-control {
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-            height: 300px;
+            justify-content: center;
         }
         .control-grid {
             display: grid;
-            grid-template-columns: 100px 100px 100px;
-            grid-template-rows: 100px 100px 100px;
-            gap: 10px;
+            grid-template-columns: repeat(3, 80px);
+            grid-template-rows: repeat(3, 80px);
+            gap: 5px;
         }
         .control-grid button {
-            width: 100px;
-            height: 100px;
-            font-size: 14px;
+            width: 80px;
+            height: 80px;
+            font-size: 12px;
             background-color: #87CEFA;
             border: none;
             cursor: pointer;
@@ -45,13 +49,20 @@
         .fine-tune-left { grid-column: 1; grid-row: 1; }
         .fine-tune-right { grid-column: 3; grid-row: 1; }
         .stop { grid-column: 2; grid-row: 2; background-color: #FF6347; } /* Red color for Stop button */
+        .start { grid-column: 2; grid-row: 3; background-color: #008000; color: white; }
     </style>
 </head>
 <body>
     <h2>Welcome, {{ username }}</h2>
     <div class="grid-container">
-        <div class="panel left-panel"></div>
-        <div class="panel left-panel"></div>
+        <div class="panel left-panel">
+            <h3>Additional Panel 1</h3>
+            <!-- Content for left panel 1 -->
+        </div>
+        <div class="panel left-panel">
+            <h3>Additional Panel 2</h3>
+            <!-- Content for left panel 2 -->
+        </div>
         
         <div class="panel robot-control">
             <h3>Robot Control</h3>
@@ -61,6 +72,7 @@
                 <button class="fine-tune-right" onclick="sendCommand('FTRight')">Fine Tune Right</button>
                 <button class="left" onclick="sendCommand('left')">Left</button>
                 <button class="stop" onclick="sendCommand('stop')">Stop</button>
+                <button class="start" onclick="startRobot()">Start</button>
                 <button class="right" onclick="sendCommand('right')">Right</button>
                 <button class="backward" onclick="sendCommand('backward')">Backward</button>
             </div>
@@ -86,15 +98,29 @@
     </div>
 
     <script>
+        async function startRobot() {
+            try {
+                const response = await fetch('/start-robot', { method: 'POST' });
+                const result = await response.json();
+                alert(result.status);
+            } catch (error) {
+                console.error('Error starting the robot:', error);
+            }
+        }
+
         async function sendCommand(action) {
-            const response = await fetch('/send-command', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ command: action })
-            });
-            const result = await response.json();
-            console.log(result.status);
-            alert(result.status);  // Optional feedback
+            try {
+                const response = await fetch('/send-command', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ command: action })
+                });
+                const result = await response.json();
+                console.log(result.status);
+                alert(result.status);  // Optional feedback
+            } catch (error) {
+                console.error('Error sending command:', error);
+            }
         }
     </script>
 </body>
