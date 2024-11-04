@@ -1,15 +1,15 @@
 import platform
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 from datetime import datetime
-from LoginPage import validate_login, register_user  # Ensure this module is available
+from LoginPage import validate_login, register_user 
 import requests
 import os
-
+import subprocess
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
 RPI_IP = "192.168.1.74"
-RPI_USER = "pi"  # Replace with your Raspberry Pi username
-
+RPI_USER = "pi"  
+message = ""
 # Logs
 login_logs = []
 command_logs = []
@@ -70,23 +70,31 @@ def send_command():
     return jsonify({"status": response_message})
 
 @app.route('/start-robot', methods=['POST'])
+@app.route('/start-robot', methods=['POST'])
 def start_robot():
-    """SSH into the Raspberry Pi and start the robot control program."""
-    try:
-        # SSH command to start the control script on the Raspberry Pi
-        ssh_command = f"ssh {RPI_USER}@{RPI_IP} 'python3 /home/pi/RaspberryPiControl.py'"
-        exit_code = os.system(ssh_command)
-        
-        if exit_code == 0:
-            message = "RaspberryPiControl.py started successfully"
-        else:
-            message = f"Failed to start RaspberryPiControl.py, exit code: {exit_code}"
-    except Exception as e:
-        message = f"Error: {str(e)}"
-    
+    Strat = request.json.get('action')
+    message = "" 
+
+    if Strat == "start":
+        try:
+            
+            ssh_command = f"ssh {RPI_USER}@{RPI_IP} 'python3 RasperryPiControl.py'"
+            result = subprocess.run(ssh_command, shell=True, capture_output=True, text=True)
+
+            if result.returncode == 0:
+                message = "Robot started successfully."
+            else:
+                message = f"Failed to start RasperryPiControl.py, exit code: {result.returncode}"
+
+        except Exception as e:
+            message = f"Exception occurred: {str(e)}"
+    else:
+        message = "Invalid action specified."
+
     command_logs.append({"command": "start", "timestamp": datetime.now(), "status": message})
-    print("started.. hoepfully")
+    print("started.. hopefully")
     return jsonify({"status": message})
 
 if __name__ == '__main__':
     app.run(debug=True)
+
