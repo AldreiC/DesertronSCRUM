@@ -49,7 +49,7 @@
         .fine-tune-left { grid-column: 1; grid-row: 1; }
         .fine-tune-right { grid-column: 3; grid-row: 1; }
         .stop { grid-column: 2; grid-row: 2; background-color: #FF6347; } /* Red color for Stop button */
-        .start { grid-column: 2; grid-row: 3; background-color: #008000; color: white; }
+        .start { grid-column: 2; grid-row: 4; background-color: #008000; }
     </style>
 </head>
 <body>
@@ -66,13 +66,13 @@
         
         <div class="panel robot-control">
             <h3>Robot Control</h3>
-            <div class="control-grid">
-                <button class="fine-tune-left" onclick="sendCommand('FTLeft')">Fine Tune Left</button>
+            <div class="control-grid">1
+                <button class="fine-tune-left" onclick="sendCommand('stop')">Stop</button>
                 <button class="forward" onclick="sendCommand('forward')">Forward</button>
-                <button class="fine-tune-right" onclick="sendCommand('FTRight')">Fine Tune Right</button>
+                <button class="fine-tune-right" onclick="startRobot('start')">Start</button>
                 <button class="left" onclick="sendCommand('left')">Left</button>
-                <button class="stop" onclick="sendCommand('stop')">Stop</button>
-                <button class="start" onclick="startRobot()">Start</button>
+                 <!--<button class="stop" onclick="sendCommand('stop')">Stop</button>-->
+                <!--<button class="start" onclick="startRobot('start')">Start</button>-->
                 <button class="right" onclick="sendCommand('right')">Right</button>
                 <button class="backward" onclick="sendCommand('backward')">Backward</button>
             </div>
@@ -99,14 +99,30 @@
 
     <script>
         async function startRobot() {
-            try {
-                const response = await fetch('/start-robot', { method: 'POST' });
-                const result = await response.json();
-                alert(result.status);
-            } catch (error) {
-                console.error('Error starting the robot:', error);
-            }
+    try {
+        const response = await fetch('/start-robot', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ action: 'start' }), // Include the action in the body
+        });
+
+        if (!response.ok) {
+            // Handle non-200 responses (e.g., 400, 415)
+            const errorData = await response.json();
+            alert(`Error: ${errorData.status}`);
+            return;
         }
+
+        const result = await response.json();
+        alert(result.status);
+    } catch (error) {
+        console.error('Error starting the robot:', error);
+        alert('An error occurred while starting the robot.');
+    }
+}
+
 
         async function sendCommand(action) {
             try {
@@ -115,9 +131,7 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ command: action })
                 });
-                const result = await response.json();
-                console.log(result.status);
-                alert(result.status);  // Optional feedback
+            
             } catch (error) {
                 console.error('Error sending command:', error);
             }
@@ -125,3 +139,4 @@
     </script>
 </body>
 </html>
+
