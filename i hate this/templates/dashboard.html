@@ -46,10 +46,9 @@
         .backward { grid-column: 2; grid-row: 3; }
         .left { grid-column: 1; grid-row: 2; }
         .right { grid-column: 3; grid-row: 2; }
-        .fine-tune-left { grid-column: 1; grid-row: 1; }
-        .fine-tune-right { grid-column: 3; grid-row: 1; }
-        .stop { grid-column: 2; grid-row: 2; background-color: #FF6347; } /* Red color for Stop button */
-        .start { grid-column: 2; grid-row: 4; background-color: #008000; }
+        .start { grid-column: 1; grid-row: 1; }
+        .stop { grid-column: 3; grid-row: 1; }
+        
     </style>
 </head>
 <body>
@@ -66,15 +65,13 @@
         
         <div class="panel robot-control">
             <h3>Robot Control</h3>
-            <div class="control-grid">1
-                <button class="fine-tune-left" onclick="startRobot('exit')">Stop</button>
-                <button class="forward" onclick="sendCommand('forward')">Forward</button>
-                <button class="fine-tune-right" onclick="startRobot('start')">Start</button>
-                <button class="left" onclick="sendCommand('left')">Left</button>
-                 <!--<button class="stop" onclick="sendCommand('stop')">Stop</button>-->
-                <!--<button class="start" onclick="startRobot('start')">Start</button>-->
-                <button class="right" onclick="sendCommand('right')">Right</button>
-                <button class="backward" onclick="sendCommand('backward')">Backward</button>
+            <div class="control-grid">
+                <button class="forward" onmousedown="sendCommand('forward')" onmouseup="sendCommand('stop')">Forward</button>
+                <button class="left" onmousedown="sendCommand('left')" onmouseup="sendCommand('stop')">Left</button>
+                <button class="right" onmousedown="sendCommand('right')" onmouseup="sendCommand('stop')">Right</button>
+                <button class="backward" onmousedown="sendCommand('backward')" onmouseup="sendCommand('stop')">Backward</button>
+                <button class="stop" onclick="startRobot('exit')">Stop</button>
+                <button class="start" onclick="startRobot('start')">Start</button>
             </div>
         </div>
         
@@ -98,31 +95,29 @@
     </div>
 
     <script>
-        async function startRobot() {
-    try {
-        const response = await fetch('/start-robot', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ action: 'start' }), // Include the action in the body
-        });
+        async function startRobot(action) {
+            try {
+                const response = await fetch('/start-robot', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ action: action })
+                });
 
-        if (!response.ok) {
-            // Handle non-200 responses (e.g., 400, 415)
-            const errorData = await response.json();
-            alert(`Error: ${errorData.status}`);
-            return;
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    alert(`Error: ${errorData.status}`);
+                    return;
+                }
+
+                const result = await response.json();
+                alert(result.status);
+            } catch (error) {
+                console.error('Error starting the robot:', error);
+                alert('An error occurred while starting the robot.');
+            }
         }
-
-        const result = await response.json();
-        alert(result.status);
-    } catch (error) {
-        console.error('Error starting the robot:', error);
-        alert('An error occurred while starting the robot.');
-    }
-}
-
 
         async function sendCommand(action) {
             try {
@@ -131,7 +126,6 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ command: action })
                 });
-            
             } catch (error) {
                 console.error('Error sending command:', error);
             }
@@ -139,4 +133,3 @@
     </script>
 </body>
 </html>
-
