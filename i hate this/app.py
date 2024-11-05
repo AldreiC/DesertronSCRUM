@@ -16,6 +16,18 @@ login_logs = []
 command_logs = []
 StartStatus = False  #
 
+def shutdown():
+    """Gracefully shut down the Flask application."""
+    try:
+        # Get the server instance from the Flask app context and shut it down
+        func = request.environ.get('werkzeug.server.shutdown')
+        if func is None:
+            raise RuntimeError('Not running with the Werkzeug Server')
+        func()
+        return 'Shutting down...'
+    except Exception as e:
+        return f'Error: {str(e)}'
+
 
 def control_robot(action):
     """Send control command to the Raspberry Pi's robot control API."""
@@ -75,15 +87,16 @@ def send_command():
 
 @app.route('/start-robot', methods=['POST'])
 def start_robot():
-    global StartStatus
+    StartStatus = False
     action = request.json.get('action')
     message = ""
 
     if action == "start":
-        if not StartStatus:  
+        if StartStatus != "Hello":  
             try:
                 # Use tmux to start a detached session running the Python script
-                ssh_command = f"ssh {RPI_USER}@{RPI_IP} 'tmux new -d -s robot_session \"python3 /path/to/RasperryPiControl.py\"'"
+                #ssh_command = f"ssh {RPI_USER}@{RPI_IP} 'tmux new -d -s robot_session \"python3 RasperryPiControl.py\"'"
+                ssh_command = f"ssh -o StrictHostKeyChecking=no {RPI_USER}@{RPI_IP} 'python3 RasperryPiControl.py &'"
                 result = subprocess.run(ssh_command, shell=True, capture_output=True, text=True)
                 if result.returncode == 0:
                     StartStatus = True
@@ -95,11 +108,11 @@ def start_robot():
         else:
             message = "Robot is already running."
 
-    elif action == "exit":
-        if StartStatus:  
+    if action == "exit":
+        if StartStatus != "Hello":  
             try:
                 # Use tmux to kill the session by name
-                ssh_command = f"ssh {RPI_USER}@{RPI_IP} 'tmux kill-session -t robot_session'"
+                ssh_command = f"ssh {RPI_USER}@{RPI_IP} 'pkill -f RasperryPiControl.py'"
                 result = subprocess.run(ssh_command, shell=True, capture_output=True, text=True)
                 if result.returncode == 0:
                     StartStatus = False
@@ -111,8 +124,6 @@ def start_robot():
         else:
             message = "The robot is not currently running."
 
-    else:
-        message = "Invalid action. Use 'start' or 'exit'."
 
     command_logs.append({"command": action, "timestamp": datetime.now(), "status": message})
     logging.info(f"Command executed: {message}")
