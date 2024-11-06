@@ -1,0 +1,168 @@
+=<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Robot Control Dashboard</title>
+    <style>
+        /* Dark Mode Styling */
+        body {
+            background-color: #1e1e1e;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 10px;
+            height: 100vh;
+        }
+
+        .panel {
+            background-color: #333;
+            border: 1px solid #444;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #ddd;
+        }
+
+        /* Dark Mode Button Styling */
+        .control-grid button {
+            width: 80px;
+            height: 80px;
+            font-size: 24px;
+            color: #ffffff;
+            background-color: #555;
+            border: none;
+            cursor: pointer;
+        }
+        .control-grid button:hover {
+            background-color: #666;
+        }
+
+        /* Directional Arrows */
+        .forward { grid-column: 2; grid-row: 1; }
+        .backward { grid-column: 2; grid-row: 3; }
+        .left { grid-column: 1; grid-row: 2; }
+        .right { grid-column: 3; grid-row: 2; }
+        .start { grid-column: 1; grid-row: 1; }
+        .stop { grid-column: 3; grid-row: 1; }
+
+        /* Command Log Panel with Scrollbar */
+        .command-log {
+            max-height: 200px; /* Limit height */
+            overflow-y: auto; /* Enable vertical scrolling */
+            width: 90%;
+        }
+    </style>
+</head>
+<body>
+    <h2>Welcome, {{ username }}</h2>
+    <div class="grid-container">
+        <div class="panel left-panel">
+            <h3>Additional Panel 1</h3>
+        </div>
+        <div class="panel left-panel">
+            <h3>Additional Panel 2</h3>
+        </div>
+        
+        <div class="panel robot-control">
+            <h3>Robot Control</h3>
+            <div class="control-grid">
+                <button class="forward" onmousedown="sendCommand('forward')" onmouseup="sendCommand('stop')">↑</button>
+                <button class="left" onmousedown="sendCommand('left')" onmouseup="sendCommand('stop')">←</button>
+                <button class="right" onmousedown="sendCommand('right')" onmouseup="sendCommand('stop')">→</button>
+                <button class="backward" onmousedown="sendCommand('backward')" onmouseup="sendCommand('stop')">↓</button>
+                <button class="stop" onclick="startRobot('exit')">Stop</button>
+                <button class="start" onclick="startRobot('start')">Start</button>
+            </div>
+        </div>
+        
+        <div class="panel login-log">
+            <h3>Login Log</h3>
+            <ul id="login-log-list"></ul>
+        </div>
+
+        <div class="panel command-log">
+            <h3>Command Log</h3>
+            <ul id="command-log-list"></ul>
+        </div>
+    </div>
+
+    <script>
+        async function loadLogs() {
+            try {
+                const response = await fetch('/get-logs');
+                const data = await response.json();
+                
+                const logList = document.getElementById('command-log-list');
+                logList.innerHTML = '';  // Clear any existing logs
+
+                data.logs.forEach(log => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = log;
+                    logList.appendChild(listItem);
+                });
+            } catch (error) {
+                console.error('Error fetching logs:', error);
+            }
+        }
+
+        async function loadLoginLogs() {
+            try {
+                const response = await fetch('/get-login-logs');
+                const data = await response.json();
+
+                const loginList = document.getElementById('login-log-list');
+                loginList.innerHTML = ''; // Clear any existing logs
+
+                data.logs.forEach(log => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = log;
+                    loginList.appendChild(listItem);
+                });
+            } catch (error) {
+                console.error('Error fetching login logs:', error);
+            }
+        }
+
+        // Load logs on page load
+        window.onload = function() {
+            loadLogs();
+            loadLoginLogs();
+        };
+
+        async function startRobot(action) {
+            try {
+                const response = await fetch('/start-robot', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ action: action })
+                });
+
+                const result = await response.json();
+                alert(result.status);
+            } catch (error) {
+                console.error('Error starting the robot:', error);
+                alert('An error occurred while starting the robot.');
+            }
+        }
+
+        async function sendCommand(action) {
+            try {
+                const response = await fetch('/send-command', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ command: action })
+                });
+            } catch (error) {
+                console.error('Error sending command:', error);
+            }
+        }
+    </script>
+</body>
+</html>
