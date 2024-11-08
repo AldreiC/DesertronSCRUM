@@ -10,6 +10,7 @@ import logging
 
 # Initialize the Flask application
 app = Flask(__name__)
+app.secret_key = os.environ.get('SECRET_KEY', 'your_default_secret_key')
 RPI_IP = "192.168.1.74"  # IP address of the Raspberry Pi
 RPI_USER = "pi"  # Username for Raspberry Pi SSH access
 message = ""  # Message to store status feedback for commands
