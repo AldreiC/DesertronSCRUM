@@ -1,53 +1,64 @@
-import threading
-import time
-from tkinter import Tk, Label, Button
 from flask import Flask, request, jsonify
+from tkinter import *
+import threading
 import requests
+import queue
 
-# Flask app initialization
 app = Flask(__name__)
+RPI_IP = "192.168.1.74"
+# Initialize states
+fwd_state = backwd_state = left_state = right_state = stop_state = 0
+command_queue = queue.Queue()
 
-# Raspberry Pi URL for motor control
-raspberry_pi_url = 'http://192.168.1.74:5001/action'
-
-# Movement control functions
-def send_command_to_robot(direction):
-    """Send a movement command to the Raspberry Pi controlling the robot."""
+def control_robot(action):
     try:
-        response = requests.post(raspberry_pi_url, json={'direction': direction})
+        response = requests.post(f"http://{RPI_IP}:5000/control_robot", json={'action': action})
         if response.status_code == 200:
-            print(f"Sent command: {direction}")
+            print("Success")
         else:
-            print(f"Failed to send command: {direction}, Status code: {response.status_code}")
+            print("Error")
     except Exception as e:
-        print(f"Error: {e}")
+        print("Failed to connect:", e)
 
-# GUI for robot control
+def FWD():
+    global fwd_state
+    fwd_state = 0b0001
+    print("Forward")
+    control_robot("forward")
+
+def BACKWD():
+    global backwd_state
+    backwd_state = 0b0010
+    print("Backward")
+    control_robot("backward")
+
+def LEFT():
+    global left_state
+    left_state = 0b0100
+    print("Left")
+    control_robot("left")
+
+def RIGHT():
+    global right_state
+    right_state = 0b1000
+    print("Right")
+    control_robot("right")
+
+def STOP():
+    global stop_state
+    stop_state = 0b0000
+    print("Stopping")
+    control_robot("stop")
+
+def reset_states():
+    global fwd_state, backwd_state, left_state, right_state, stop_state
+    fwd_state = backwd_state = left_state = right_state = stop_state = 0
+def FTLeft():
+    control_robot("FTLeft")
+def FTRight():
+    control_robot("FTRight")
+
 class ControlGUI(Tk):
-    def FWD(self):
-        print("Forward")
-        send_command_to_robot('forward')
-
-    def BACKWD(self):
-        print("Backward")
-        send_command_to_robot('backward')
-
-    def LEFT(self):
-        print("Left")
-        send_command_to_robot('left')
-
-    def RIGHT(self):
-        print("Right")
-        send_command_to_robot('right')
-
-    def STOP(self):
-        print("Stopping")
-        send_command_to_robot('stop')
-
-    def reset_states(self):
-        """Reset all movement states (Optional - if needed)."""
-        pass
-
     def __init__(self):
         super().__init__()
         self.geometry("400x400")
@@ -55,52 +66,47 @@ class ControlGUI(Tk):
 
         Label(self, text="Control Panel", font=("Arial", 20)).pack(pady=20)
 
-        # Control buttons with corresponding commands
-        Button(self, text="Forward", command=self.FWD).pack(pady=10)
-        Button(self, text="Backward", command=self.BACKWD).pack(pady=10)
-        Button(self, text="Left", command=self.LEFT).pack(pady=10)
-        Button(self, text="Right", command=self.RIGHT).pack(pady=10)
-        Button(self, text="Stop", command=self.STOP).pack(pady=10)
+        Button(self, text="Forward", command=lambda: [reset_states(), FWD()]).pack(pady=10)
+        Button(self, text="Backward", command=lambda: [reset_states(), BACKWD()]).pack(pady=10)
+        Button(self, text="Right", command=lambda: [reset_states(), RIGHT()]).pack(pady=10)
+        Button(self, text="Left", command=lambda: [reset_states(), LEFT()]).pack(pady=10)
+        Button(self, text="Stop", command=lambda: [reset_states(), STOP()]).pack(pady=10)
+        Button(self, text="Fine Tune Left", command=lambda: [reset_states(), FTLeft()]).pack(pady=10)
+        Button(self, text="Fine Tune Right", command=lambda: [reset_states(), FTRight()]).pack(pady=10)
+        self.mainloop()
 
-# Flask route to handle commands via API
-@app.route('/command', methods=['POST'])
+@app.route('/control_robot', methods=['POST'])
 def handle_command():
-    """Handle incoming commands from the Flask API."""
     data = request.get_json()
-    command = data.get('command')
+    command = data.get('action')
 
-    if command in ['forward', 'backward', 'left', 'right', 'stop']:
-        send_command_to_robot(command)
-        return jsonify({"status": f"Command '{command}' executed via API"}), 200
+    if command == 'forward':
+        reset_states()
+        FWD()
+    elif command == 'backward':
+        reset_states()
+        BACKWD()
+    elif command == 'left':
+        reset_states()
+        LEFT()
+    elif command == 'right':
+        reset_states()
+        RIGHT()
+    elif command == 'stop':
+        reset_states()
+        STOP()
     else:
-        return jsonify({"error": "Invalid command"}), 400
+        return jsonify({"status": "Error: Unknown command"}), 400
 
-@app.route('/')
-def home():
-    return "Flask is running"
+    return jsonify({"status": f"Command '{command}' executed in GUI"}), 200
 
-# Function to run the Flask server
-def run_flask():
-    app.run(port=5000, debug=False, use_reloader=False)
+def run_server():
+    app.run(host="0.0.0.0", port=22)
 
-# Function to start Flask in a separate thread
-def start_flask_in_thread():
-    flask_thread = threading.Thread(target=run_flask)
-    flask_thread.daemon = True  # Daemon thread will exit when the main program exits
-    flask_thread.start()
+if __name__ == '__main__':
+    # Start the Flask server in a new thread
+    server_thread = threading.Thread(target=run_server)
+    server_thread.start()
 
-# Main function to start the Flask API and GUI
-def main():
-    # Start Flask in a separate thread
-    print("Starting Flask server in the background...")
-    start_flask_in_thread()
-
-    # Wait for Flask to initialize
-    time.sleep(2)
-
-    # Open the control GUI
-    print("Opening the Control GUI...")
-    ControlGUI().mainloop()
-
-if __name__ == "__main__":
-    main()
+    # Start the GUI
+    ControlGUI()

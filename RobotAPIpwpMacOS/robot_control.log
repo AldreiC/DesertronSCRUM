@@ -1,0 +1,18 @@
+2024-11-05 19:27:15,765 - WARNING -  * Debugger is active!
+2024-11-05 19:27:15,771 - INFO -  * Debugger PIN: 237-720-280
+2024-11-05 19:30:07,061 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-11-05 19:30:07,061 - INFO - [33mPress CTRL+C to quit[0m
+2024-11-05 19:30:07,061 - INFO -  * Restarting with stat
+2024-11-05 19:30:07,174 - WARNING -  * Debugger is active!
+2024-11-05 19:30:07,181 - INFO -  * Debugger PIN: 237-720-280
+2024-11-05 19:32:21,401 - WARNING -  * Debugger is active!
+2024-11-05 19:32:21,407 - INFO -  * Debugger PIN: 237-720-280
+2024-11-05 19:33:16,398 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-11-05 19:33:16,398 - INFO - [33mPress CTRL+C to quit[0m
+2024-11-05 19:33:16,398 - INFO -  * Restarting with stat
+2024-11-05 19:33:16,512 - WARNING -  * Debugger is active!
+2024-11-05 19:33:16,518 - INFO -  * Debugger PIN: 237-720-280
+2024-11-05 19:33:28,607 - INFO -  * Detected change in '/Users/aashvikgarimella/Documents/CODE/RobotAPIpwpMacOS/app.py', reloading
+2024-11-05 19:33:28,638 - INFO -  * Restarting with stat

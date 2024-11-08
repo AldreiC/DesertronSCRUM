@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Robot Control Dashboard</title>
+    <style>
+        /* Dark mode styling for the page */
+        body {
+            background-color: #1e1e1e;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+        }
+
+        /* Grid layout for main panels */
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 10px;
+            height: 100vh;
+        }
+
+        /* Styling for individual panels */
+        .panel {
+            background-color: #333;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #ddd;
+        }
+
+        /* Button styling in control grid */
+        .control-grid button {
+            width: 80px;
+            height: 80px;
+            font-size: 24px;
+            color: #ffffff;
+            background-color: #555;
+            border: none;
+            cursor: pointer;
+        }
+
+        /* Directional arrow positioning */
+        .forward { grid-column: 2; grid-row: 1; }
+        .backward { grid-column: 2; grid-row: 3; }
+        .left { grid-column: 1; grid-row: 2; }
+        .right { grid-column: 3; grid-row: 2; }
+        .start { grid-column: 1; grid-row: 1; }
+        .stop { grid-column: 3; grid-row: 1; }
+
+        /* Log container with scrollable panels */
+        .log-panel {
+            max-height: 200px;
+            overflow-y: auto;
+            width: 45%;
+            padding: 5px;
+            background-color: #666;
+            color: #000;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <!-- Main heading with username -->
+    <h2>Welcome, {{ username }}</h2>
+    <div class="grid-container">
+        <!-- Placeholder panels for additional content -->
+        <div class="panel">
+            <h3>Additional Panel 1</h3>
+        </div>
+        
+        <!-- Robot control panel with directional buttons -->
+        <div class="panel robot-control">
+            <h3>Robot Control</h3>
+            <div class="control-grid">
+                <button class="forward" onmousedown="sendCommand('forward')" onmouseup="sendCommand('stop')">↑</button>
+                <button class="left" onmousedown="sendCommand('left')" onmouseup="sendCommand('stop')">←</button>
+                <button class="right" onmousedown="sendCommand('right')" onmouseup="sendCommand('stop')">→</button>
+                <button class="backward" onmousedown="sendCommand('backward')" onmouseup="sendCommand('stop')">↓</button>
+                <button class="stop" onclick="startRobot('exit')">Stop</button>
+                <button class="start" onclick="startRobot('start')">Start</button>
+            </div>
+        </div>
+        
+        <div class="panel logs-panel">
+            <h3>Additional Panel 2</h3>
+        </div>
+
+        <!-- Log panels for command and login history -->
+        <div class="panel logs-panel">
+            <div class="log-panel">
+                <h3>Command Log</h3>
+                <ul id="command-log-list"></ul>
+            </div>
+            <div class="log-panel">
+                <h3>Login Log</h3>
+                <ul id="login-log-list"></ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Fetch command logs on page load
+        async function loadLogs() {
+            try {
+                const response = await fetch('/get-logs');
+                const data = await response.json();
+                
+                const logList = document.getElementById('command-log-list');
+                logList.innerHTML = '';  // Clear logs
+
+                data.logs.forEach(log => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = log;
+                    logList.appendChild(listItem);
+                });
+            } catch (error) {
+                console.error('Error fetching logs:', error);
+            }
+        }
+
+        // Fetch login logs on page load
+        async function loadLoginLogs() {
+            try {
+                const response = await fetch('/get-login-logs');
+                const data = await response.json();
+
+                const loginList = document.getElementById('login-log-list');
+                loginList.innerHTML = ''; // Clear logs
+
+                data.logs.forEach(log => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = log;
+                    loginList.appendChild(listItem);
+                });
+            } catch (error) {
+                console.error('Error fetching login logs:', error);
+            }
+        }
+
+        // Initialize log loading on page load
+        window.onload = function() {
+            loadLogs();
+            loadLoginLogs();
+        };
+
+        // Send command to control the robot
+        async function startRobot(action) {
+            try {
+                const response = await fetch('/start-robot', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ action: action })
+                });
+
+                const result = await response.json();
+                alert(result.status);
+            } catch (error) {
+                console.error('Error starting the robot:', error);
+                alert('An error occurred while starting the robot.');
+            }
+        }
+
+        // Send individual movement commands
+        async function sendCommand(action) {
+            try {
+                await fetch('/send-command', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ command: action })
+                });
+            } catch (error) {
+                console.error('Error sending command:', error);
+            }
+        }
+    </script>
+</body>
+</html>

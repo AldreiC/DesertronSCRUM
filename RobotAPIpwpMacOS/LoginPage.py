@@ -1,11 +1,14 @@
+# Import required modules
 import datetime
 import sqlite3
 import requests
 from tkinter import *
 from tkinter import messagebox
 
-successfulLogin = None
+successfulLogin = None  # Global variable to track login status
+
 def create_table():
+    """Create a users table in the database if it doesn't already exist."""
     conn = sqlite3.connect('PWP_database.db')
     cursor = conn.cursor()
 
@@ -16,12 +19,11 @@ def create_table():
         password TEXT NOT NULL
     )
     ''')
-
     conn.commit()
     conn.close()
 
-
 def display_table():
+    """Display all users currently in the database."""
     conn = sqlite3.connect('PWP_database.db')
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM users")
@@ -36,25 +38,24 @@ def display_table():
 
     conn.close()
 
-
 def wipe_table():
+    """Delete all records in the users table and reset the userId sequence."""
     conn = sqlite3.connect('PWP_database.db')
     cursor = conn.cursor()
     cursor.execute('DELETE FROM users')
     cursor.execute('DELETE FROM sqlite_sequence WHERE name="users"')
     conn.commit()
-
     print("All records in the users table have been wiped and userId reset to 1.")
-
     conn.close()
 
-
 def register():
+    """Display a registration window with username and password fields."""
     reg = Tk()
     reg.geometry("600x600")
     reg.resizable(False, False)
     reg.title("Register")
 
+    # Define frames for organization
     treg_frame = Frame(reg)
     treg_frame.place(relx=0, rely=0, relheight=0.3, relwidth=1)
     mreg_frame = Frame(reg)
@@ -62,9 +63,11 @@ def register():
     breg_frame = Frame(reg)
     breg_frame.place(relx=0, rely=0.7, relheight=0.3, relwidth=1)
 
+    # Variables to store user input
     usr_en_var = StringVar()
     pwd_en_var = StringVar()
 
+    # Create labels, entry fields, and buttons for registration
     ttl_lbl = Label(treg_frame, text="Register", font=("Papyrus", 50))
     ttl_lbl.place(relx=0.5, rely=0.5, anchor="center", relheight=1, relwidth=1)
     usr_lbl = Label(mreg_frame, text="Username:", font=("Papyrus", 20))
@@ -77,6 +80,7 @@ def register():
     pwd_en = Entry(mreg_frame, textvariable=pwd_en_var, show="*")  # Masked password entry
     pwd_en.place(relx=0.65, rely=0.4, anchor="center", relheight=0.2, relwidth=0.5)
 
+    # Register and exit buttons
     sub_btn = Button(mreg_frame, text="Register", command=lambda: register_code(usr_en, pwd_en, reg))
     sub_btn.place(relx=0.5, rely=0.8, anchor="center", relheight=0.2, relwidth=0.3)
     ext_btn = Button(breg_frame, text="Exit", command=reg.destroy)
@@ -84,8 +88,25 @@ def register():
 
     reg.mainloop()
 
+def register_user(username, password):
+    """Insert a new user into the users table."""
+    conn = sqlite3.connect('PWP_database.db')
+    cursor = conn.cursor()
+    try:
+        cursor.execute('INSERT INTO users (username, password) VALUES (?, ?)', (username, password))
+        conn.commit()
+        conn.close()
+        return True  # Successful registration
+    except sqlite3.IntegrityError:
+        conn.close()
+        return False  # Username already exists
+    except Exception as e:
+        conn.close()
+        print("An error occurred:", e)
+        return False
 
-def register_code(usr, pwd, reg_window):
+def register_code(usr, pwd):
+    """Handle the registration process and provide feedback."""
     username = usr.get().strip()
     password = pwd.get().strip()
     message = ["", ""]
@@ -101,7 +122,7 @@ def register_code(usr, pwd, reg_window):
         cursor.execute('INSERT INTO users (username, password) VALUES (?, ?)', (username, password))
         conn.commit()
         message = ["Success", "User registered successfully!"]
-        reg_window.destroy()  
+      
     except sqlite3.IntegrityError:
         message = ["Error", "Error: Username already exists. Please choose a different one."]
     except Exception as e:
@@ -111,13 +132,14 @@ def register_code(usr, pwd, reg_window):
     
     messagebox.showinfo(message[0], message[1])
 
-
 def login():
+    """Display a login window with username and password fields."""
     log = Tk()
     log.geometry("600x600")
     log.resizable(False, False)
     log.title("Login")
 
+    # Define frames for organization
     logframe1 = Frame(log)
     logframe1.place(relx=0, rely=0, relheight=0.3, relwidth=1)
     logframe2 = Frame(log)
@@ -125,9 +147,11 @@ def login():
     logframe3 = Frame(log)
     logframe3.place(relx=0, rely=0.7, relheight=0.3, relwidth=1)
 
+    # Variables to store user input
     username_var = StringVar()
     password_var = StringVar()
 
+    # Create labels, entry fields, and buttons for login
     loglabel1 = Label(logframe1, text="Login", font=("Papyrus", 50))
     loglabel1.place(relx=0.5, rely=0.5, anchor="center", relheight=1, relwidth=1)
     username_label = Label(logframe2, text="Username:", font=("Papyrus", 20))
@@ -140,6 +164,7 @@ def login():
     password_entry = Entry(logframe2, textvariable=password_var, show="*")  # Masked password entry
     password_entry.place(relx=0.65, rely=0.4, anchor="center", relheight=0.2, relwidth=0.5)
 
+    # Login and exit buttons
     logbutton = Button(logframe2, text="Log in", command=lambda: login_code(username_entry, password_entry, log))
     logbutton.place(relx=0.5, rely=0.8, anchor="center", relheight=0.2, relwidth=0.3)
     exitbutton = Button(logframe3, text="Exit", command=log.destroy)
@@ -147,8 +172,8 @@ def login():
 
     log.mainloop()
 
-
 def login_code(user, passw, log_window):
+    """Validate login credentials and handle login process."""
     successfulLogin = False  # Default to failure
     username2 = user.get().strip()
     password2 = passw.get().strip()
@@ -156,6 +181,7 @@ def login_code(user, passw, log_window):
     conn = sqlite3.connect('PWP_database.db')
     cursor = conn.cursor()
 
+    # Check if user exists in the database
     cursor.execute('SELECT * FROM users WHERE username = ? AND password = ?', (username2, password2))
     result = cursor.fetchone()
 
@@ -165,8 +191,9 @@ def login_code(user, passw, log_window):
         log_window.destroy()
         successfulLogin = True  # Set success flag
 
+        # Attempt to connect to the controller after successful login
         try:
-            response = requests.post('http://127.0.0.1:5000/command')
+            response = requests.post('http://192.168.1.74/command')
             if response.status_code == 200:
                 print("Controller launched successfully.")
             else:
@@ -184,19 +211,32 @@ def login_code(user, passw, log_window):
         
     conn.close()
     return successfulLogin  # Return success status
+
 def destroy(root):
+    """Close the application and reset login status."""
     global successfulLogin
     successfulLogin = False
     root.destroy()
 
+def validate_login(username, password):
+    """Check if a given username and password combination exists in the database."""
+    conn = sqlite3.connect('PWP_database.db')
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM users WHERE username = ? AND password = ?', (username, password))
+    result = cursor.fetchone()
+    conn.close()
+    return bool(result)
+
 def main():
+    """Main function to start the GUI and initialize the database."""
     global successfulLogin
-    create_table()
+    create_table()  # Create users table if not exists
 
     root = Tk()
     root.geometry("800x1000")
     root.title("DesertronSCRUMSite")
 
+    # Define frames for organization
     t_frame = Frame(root)
     t_frame.place(relx=0, rely=0, relheight=0.4, relwidth=1)
     m_frame = Frame(root)
@@ -204,6 +244,7 @@ def main():
     b_frame = Frame(root)
     b_frame.place(relx=0, rely=0.8, relheight=0.2, relwidth=1)
 
+    # Create labels and buttons for main menu
     ttl_lbl = Label(t_frame, text="DESERTRON LOGIN PAGE", font=("Papyrus", 50))
     ttl_lbl.place(relx=0.5, rely=0.5, anchor="center", relheight=1, relwidth=1)
 
@@ -218,6 +259,8 @@ def main():
     return successfulLogin
 
 if __name__ == "__main__":
-    #wipe_table()
+    # Uncomment to clear database
+    # wipe_table()
     main()
-    #display_table()
+    # Uncomment to display users in database
+    # display_table()

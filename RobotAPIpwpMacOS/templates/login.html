@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login and Registration</title>
+    <style>
+        /* Dark mode styling */
+        body {
+            background-color: #1e1e1e;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        form {
+            background-color: #333;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+        }
+
+        label, input {
+            display: block;
+            margin: 10px 0;
+            color: #ffffff;
+        }
+
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #555;
+            background-color: #222;
+            color: #ffffff;
+        }
+
+        button {
+            background-color: #555;
+            color: #ffffff;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <!-- Login form -->
+        <h2>Login</h2>
+        <form action="{{ url_for('login_user') }}" method="post">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+            <button type="submit">Login</button>
+        </form>
+
+        <!-- Registration form -->
+        <h2>Register</h2>
+        <form action="{{ url_for('register_user_route') }}" method="post">
+            <label for="new_username">Username:</label>
+            <input type="text" id="new_username" name="username" required>
+            <label for="new_password">Password:</label>
+            <input type="password" id="new_password" name="password" required>
+            <button type="submit">Register</button>
+        </form>
+    </div>
+</body>
+</html>

@@ -1,80 +1,118 @@
 from flask import Flask, request
-import RPi.GPIO as GPIO
+from PCA9685 import PCA9685
 import time
 
 # Initialize Flask app
 app = Flask(__name__)
 
-# GPIO setup
-GPIO.setwarnings(False)
-GPIO.setmode(GPIO.BCM)
+# Motor control setup using PCA9685 and MotorDriver
+Dir = [
+    'forward',
+    'backward',
+]
+pwm = PCA9685(0x40, debug=False)
+pwm.setPWMFreq(50)
 
-# Define GPIO pins for motors
-LEFT_MOTOR_FORWARD = 17
-LEFT_MOTOR_BACKWARD = 18
-RIGHT_MOTOR_FORWARD = 22
-RIGHT_MOTOR_BACKWARD = 23
+class MotorDriver():
+    def __init__(self):
+        self.PWMA = 0
+        self.AIN1 = 1
+        self.AIN2 = 2
+        self.PWMB = 5
+        self.BIN1 = 3
+        self.BIN2 = 4
 
-# Setup GPIO pins
-GPIO.setup(LEFT_MOTOR_FORWARD, GPIO.OUT)
-GPIO.setup(LEFT_MOTOR_BACKWARD, GPIO.OUT)
-GPIO.setup(RIGHT_MOTOR_FORWARD, GPIO.OUT)
-GPIO.setup(RIGHT_MOTOR_BACKWARD, GPIO.OUT)
+    def MotorRun(self, motor, index, speed):
+        if speed > 100:
+            return
+        if(motor == 0):
+            pwm.setDutycycle(self.PWMA, speed)
+            if(index == Dir[0]):
+                pwm.setLevel(self.AIN1, 0)
+                pwm.setLevel(self.AIN2, 1)
+            else:
+                pwm.setLevel(self.AIN1, 1)
+                pwm.setLevel(self.AIN2, 0)
+        else:
+            pwm.setDutycycle(self.PWMB, speed)
+            if(index == Dir[1]):
+                pwm.setLevel(self.BIN1, 0)
+                pwm.setLevel(self.BIN2, 1)
+            else:
+                pwm.setLevel(self.BIN1, 1)
+                pwm.setLevel(self.BIN2, 0)
 
-def move_forward(duration):
-    GPIO.output(LEFT_MOTOR_FORWARD, GPIO.HIGH)
-    GPIO.output(RIGHT_MOTOR_FORWARD, GPIO.HIGH)
-    print("Moving forward")
-    time.sleep(duration)
-    stop_motors()
+    def MotorStop(self, motor):
+        if (motor == 0):
+            pwm.setDutycycle(self.PWMA, 0)
+        else:
+            pwm.setDutycycle(self.PWMB, 0)
 
-def move_backward(duration):
-    GPIO.output(LEFT_MOTOR_BACKWARD, GPIO.HIGH)
-    GPIO.output(RIGHT_MOTOR_BACKWARD, GPIO.HIGH)
-    print("Moving backward")
-    time.sleep(duration)
-    stop_motors()
+# Create a motor driver instance
+Motor = MotorDriver()
+
+# Define motor control functions
+def move_forward(duration, speed):
+    Motor.MotorRun(0, 'forward', speed)
+    Motor.MotorRun(1, 'forward', speed)
+    # time.sleep(duration)
+    # stop_motors()
+
+def move_backward(duration, speed):
+    Motor.MotorRun(0, 'backward', speed)
+    Motor.MotorRun(1, 'backward', speed)
+    # time.sleep(duration)
+    # stop_motors()
 
 def stop_motors():
-    GPIO.output(LEFT_MOTOR_FORWARD, GPIO.LOW)
-    GPIO.output(LEFT_MOTOR_BACKWARD, GPIO.LOW)
-    GPIO.output(RIGHT_MOTOR_FORWARD, GPIO.LOW)
-    GPIO.output(RIGHT_MOTOR_BACKWARD, GPIO.LOW)
-    print("Stopping")
+    Motor.MotorStop(0)
+    Motor.MotorStop(1)
 
-def turn_left(duration=1):
-    GPIO.output(LEFT_MOTOR_FORWARD, GPIO.LOW)  # Stop left motor
-    GPIO.output(RIGHT_MOTOR_FORWARD, GPIO.HIGH)  # Move right motor forward
-    print("Turning left")
-    time.sleep(duration)
-    stop_motors()
+def turn_left(duration=.25, speed=100):
+    Motor.MotorRun(0, 'backward', speed)  # Move left motor backward
+    Motor.MotorRun(1, 'forward', speed)   # Move right motor forward
+    # time.sleep(duration)
+    # stop_motors()
 
-def turn_right(duration=1):
-    GPIO.output(LEFT_MOTOR_FORWARD, GPIO.HIGH)  # Move left motor forward
-    GPIO.output(RIGHT_MOTOR_FORWARD, GPIO.LOW)  # Stop right motor
-    print("Turning right")
-    time.sleep(duration)
-    stop_motors()
+def turn_right(duration=.25, speed=100):
+    Motor.MotorRun(0, 'forward', speed)   # Move left motor forward
+    Motor.MotorRun(1, 'backward', speed)  # Move right motor backward
+    # time.sleep(duration)
+    # stop_motors()
 
+def FTturn_right(duration=.05, speed=100):
+    Motor.MotorRun(0, 'forward', speed)   # Move left motor forward
+    Motor.MotorRun(1, 'backward', speed)  # Move right motor backward
+    # time.sleep(duration)
+    # stop_motors()
+
+def FTturn_left(duration=.05, speed=100):
+    Motor.MotorRun(0, 'backward', speed)  # Move left motor backward
+    Motor.MotorRun(1, 'forward', speed)   # Move right motor forward
+    # time.sleep(duration)
+    # stop_motors()
+
+# Flask route for controlling the robot
 @app.route('/control_robot', methods=['POST'])
 def control_robot():
     action = request.json.get('action')
+    speed = request.json.get('speed', 40) 
 
-    if action == 'forward':
-        move_forward(2)  # Move forward for 2 seconds
-        return "Moving forward", 200
-
-    elif action == 'backward':
-        move_backward(2)  # Move backward for 2 seconds
+    if action == 'backward':
+        move_forward(.25, speed)  
         return "Moving backward", 200
 
-    elif action == 'left':
-        turn_left()  # Default duration is 1 second
-        return "Turning left", 200
+    elif action == 'forward':
+        move_backward(.25, speed) 
+        return "Moving forward", 200
 
     elif action == 'right':
-        turn_right()  # Default duration is 1 second
+        turn_left(.25, speed)  
         return "Turning right", 200
+
+    elif action == 'left':
+        turn_right(.25, speed)  
+        return "Turning left", 200
 
     elif action == 'stop':
         stop_motors()
@@ -85,7 +123,8 @@ def control_robot():
 
 if __name__ == '__main__':
     try:
-        app.run(host='0.0.0.0', port=5000)  # Run the Flask app on Raspberry Pi
+        app.run(host='0.0.0.0', port=5000)
     except KeyboardInterrupt:
         stop_motors()
-        GPIO.cleanup()
+
+#scp "/Users/pl244272/Documents/DesertronCODE/RobotAPIpwp/RasperryPiControl.py" pi@192.168.1.74:/home/pi/

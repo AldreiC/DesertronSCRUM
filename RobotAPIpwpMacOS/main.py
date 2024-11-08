@@ -17,7 +17,7 @@ def home():
 
 def run_flask():
     """Function to run the Flask app."""
-    app.run(port=5000, debug=False, use_reloader=False)
+    app.run(host ="0.0.0.0",port=5000, debug=False, use_reloader=False)
 
 
 def start_flask_in_thread():
