@@ -5,7 +5,7 @@ import requests
 import queue
 
 app = Flask(__name__)
-RPI_IP = "192.168.260.22"
+RPI_IP = "192.168.240.22"
 # Initialize states
 fwd_state = backwd_state = left_state = right_state = stop_state = 0
 command_queue = queue.Queue()
