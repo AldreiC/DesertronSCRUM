@@ -10,13 +10,14 @@ from queue import Queue
 from threading import Lock
 import json
 from LoginPage import validate_login, register_user, create_table
-from LineProcessing import stream_processing # Import frame processing from LineProcessing.py
+from LineProcessing import stream_processing  # Import frame processing from LineProcessing.py
 import cv2
+
 # Initialize Flask application and configurations
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'your_default_secret_key')
 RPI_IP = "192.168.240.22"  # Update with your Raspberry Pi's IP
-RPI_USER = "pi"      # Update with your Raspberry Pi username
+RPI_USER = "pi"  # Update with your Raspberry Pi username
 create_table()
 # Global variables
 message = ""
@@ -27,7 +28,6 @@ event_queue = Queue()
 clients = set()
 video_Stream = False
 clients_lock = Lock()
-VIDEO_PATH = "VideoFootage/car.mov"
 # Logging configuration
 LOG_FILE_PATH = "app.log"
 LOGIN_LOG_FILE_PATH = "login.log"
@@ -40,12 +40,14 @@ logging.basicConfig(
     ]
 )
 
+
 def broadcast_event(event_type, data):
     """Send event to all connected clients."""
     event = {'type': event_type, 'data': data}
     with clients_lock:
         for client_queue in clients:
             client_queue.put(event)
+
 
 def log_login(username):
     """Log login attempt and broadcast event."""
@@ -55,6 +57,7 @@ def log_login(username):
     logging.info(login_message)
     broadcast_event('login_log', login_message)
 
+
 def check_services():
     """Check if both scripts are running on the Raspberry Pi."""
     try:
@@ -63,6 +66,7 @@ def check_services():
         return result.returncode == 0
     except Exception:
         return False
+
 
 def control_robot(action):
     """Send control commands to the robot."""
@@ -86,10 +90,12 @@ def control_robot(action):
     broadcast_event('command_log', log_entry)
     return message
 
+
 @app.route('/')
 def login():
     """Render the login page."""
     return render_template('login.html')
+
 
 @app.route('/login', methods=['POST'])
 def login_user():
@@ -102,6 +108,7 @@ def login_user():
         return redirect(url_for('dashboard'))
     return 'Invalid credentials', 401
 
+
 @app.route('/register', methods=['POST'])
 def register_user_route():
     """Handle user registration."""
@@ -110,6 +117,7 @@ def register_user_route():
     if register_user(username, password):
         return redirect(url_for('login'))
     return 'Registration failed. Username may already exist.', 400
+
 
 @app.route('/dashboard')
 def dashboard():
@@ -122,22 +130,22 @@ def dashboard():
 @app.route('/video_feed/raw')
 def raw_video_feed():
     def generate_frames():
-            cap = cv2.VideoCapture(VIDEO_PATH)
-            while video_Stream == True:
-                ret, frame = cap.read()
-                if not ret or frame is None:
-                    print("Error: Could not read raw frame")
-                    break
+        cap = cv2.VideoCapture(0)
+        while video_Stream:
+            ret, frame = cap.read()
+            if not ret or frame is None:
+                print("Error: Could not read raw frame")
+                break
 
-                _, buffer = cv2.imencode('.jpg', frame)
-                if buffer is None:
-                    print("Error: Could not encode raw frame")
-                    continue
+            _, buffer = cv2.imencode('.jpg', frame)
+            if buffer is None:
+                print("Error: Could not encode raw frame")
+                continue
 
-                yield (b'--frame\r\n'
-                    b'Content-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n')
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n')
 
-            cap.release()
+        cap.release()
 
     return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
@@ -145,41 +153,42 @@ def raw_video_feed():
 @app.route('/video_feed/overlay')
 def overlay_video_feed():
     def generate_frames():
-            cap = cv2.VideoCapture(VIDEO_PATH)
-            frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-            frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-            fps = cap.get(cv2.CAP_PROP_FPS)
+        cap = cv2.VideoCapture(0)
+        frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        fps = cap.get(cv2.CAP_PROP_FPS)
 
-            while video_Stream:
-                ret, frame = cap.read()
-                if not ret or frame is None:
-                    print("Error: Could not read frame from video")
-                    break
+        while video_Stream:
+            ret, frame = cap.read()
+            if not ret or frame is None:
+                print("Error: Could not read frame from video")
+                break
 
-                processed_frame = stream_processing(frame)
+            processed_frame = stream_processing(frame)
 
-                if processed_frame is None:
-                    print("Error: Processed frame is None, using original frame")
-                    processed_frame = frame  # Use the original frame if processing fails
+            if processed_frame is None:
+                print("Error: Processed frame is None, using original frame")
+                processed_frame = frame  # Use the original frame if processing fails
 
-                _, buffer = cv2.imencode('.jpg', processed_frame)
-                if buffer is None:
-                    print("Error: Could not encode frame")
-                    continue  # Skip this frame
+            _, buffer = cv2.imencode('.jpg', processed_frame)
+            if buffer is None:
+                print("Error: Could not encode frame")
+                continue  # Skip this frame
 
-                frame_bytes = buffer.tobytes()
+            frame_bytes = buffer.tobytes()
 
-                yield (b'--frame\r\n'
-                    b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
 
-            cap.release()
-
+        cap.release()
 
     return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
+
 
 @app.route('/events')
 def events():
     """SSE endpoint for real-time updates."""
+
     def generate():
         client_queue = Queue()
         with clients_lock:
@@ -194,6 +203,7 @@ def events():
 
     return Response(generate(), mimetype='text/event-stream')
 
+
 @app.route('/get-login-logs')
 def get_login_logs():
     """Return login logs."""
@@ -203,6 +213,7 @@ def get_login_logs():
     else:
         logs = ["Login log file not found."]
     return jsonify(logs=logs)
+
 
 @app.route('/get-logs')
 def get_logs():
@@ -225,6 +236,7 @@ def send_command():
     response_message = control_robot(command)
 
     return jsonify({"status": response_message})
+
 
 @app.route('/start-robot', methods=['POST'])
 def start_robot():
@@ -272,4 +284,3 @@ def start_robot():
 
 if __name__ == '__main__':
     app.run(debug=True, threaded=True, host='0.0.0.0', port=5001)
-
