@@ -7,6 +7,7 @@ from tkinter import messagebox
 
 successfulLogin = None  # Global variable to track login status
 
+
 def create_table():
     """Create a users table in the database if it doesn't already exist."""
     conn = sqlite3.connect('PWP_database.db')
@@ -21,6 +22,7 @@ def create_table():
     ''')
     conn.commit()
     conn.close()
+
 
 def display_table():
     """Display all users currently in the database."""
@@ -38,6 +40,7 @@ def display_table():
 
     conn.close()
 
+
 def wipe_table():
     """Delete all records in the users table and reset the userId sequence."""
     conn = sqlite3.connect('PWP_database.db')
@@ -47,6 +50,7 @@ def wipe_table():
     conn.commit()
     print("All records in the users table have been wiped and userId reset to 1.")
     conn.close()
+
 
 def register():
     """Display a registration window with username and password fields."""
@@ -88,6 +92,7 @@ def register():
 
     reg.mainloop()
 
+
 def register_user(username, password):
     """Insert a new user into the users table."""
     conn = sqlite3.connect('PWP_database.db')
@@ -104,6 +109,7 @@ def register_user(username, password):
         conn.close()
         print("An error occurred:", e)
         return False
+
 
 def register_code(usr, pwd):
     """Handle the registration process and provide feedback."""
@@ -122,15 +128,16 @@ def register_code(usr, pwd):
         cursor.execute('INSERT INTO users (username, password) VALUES (?, ?)', (username, password))
         conn.commit()
         message = ["Success", "User registered successfully!"]
-      
+
     except sqlite3.IntegrityError:
         message = ["Error", "Error: Username already exists. Please choose a different one."]
     except Exception as e:
         message = ["Error", f"An error occurred: {e}"]
     finally:
         conn.close()
-    
+
     messagebox.showinfo(message[0], message[1])
+
 
 def login():
     """Display a login window with username and password fields."""
@@ -172,6 +179,7 @@ def login():
 
     log.mainloop()
 
+
 def login_code(user, passw, log_window):
     """Validate login credentials and handle login process."""
     successfulLogin = False  # Default to failure
@@ -201,22 +209,25 @@ def login_code(user, passw, log_window):
         except Exception as e:
             print("Error connecting to the controller:", e)
     else:
-        retry = messagebox.askretrycancel("Failure", "Username or password incorrect. Try again or register a new account.")
+        retry = messagebox.askretrycancel("Failure",
+                                          "Username or password incorrect. Try again or register a new account.")
         log_window.destroy()
 
         if retry:
             login()  # Restart the login process
         else:
             register()  # Open registration
-        
+
     conn.close()
     return successfulLogin  # Return success status
+
 
 def destroy(root):
     """Close the application and reset login status."""
     global successfulLogin
     successfulLogin = False
     root.destroy()
+
 
 def validate_login(username, password):
     """Check if a given username and password combination exists in the database."""
@@ -226,7 +237,10 @@ def validate_login(username, password):
     result = cursor.fetchone()
     conn.close()
     return bool(result)
+
+
 create_table()
+
 
 def main():
     """Main function to start the GUI and initialize the database."""
@@ -255,9 +269,10 @@ def main():
     log_btn.place(relx=0.75, rely=0.5, anchor="center", relheight=0.4, relwidth=0.4)
     ext_btn = Button(b_frame, text="Exit", font=("Papyrus", 25), command=lambda: destroy(root))
     ext_btn.place(relx=0.5, rely=0.5, anchor="center", relheight=0.5, relwidth=0.2)
-    
+
     root.mainloop()
     return successfulLogin
+
 
 if __name__ == "__main__":
     # Uncomment to clear database
