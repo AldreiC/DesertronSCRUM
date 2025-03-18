@@ -9,7 +9,7 @@ successfulLogin = None  # Global variable to track login status
 
 
 def create_table():
-    """Create a users table in the database if it doesn't already exist."""
+    """Create a user table in the database if it doesn't already exist."""
     conn = sqlite3.connect('PWP_database.db')
     cursor = conn.cursor()
 
@@ -85,7 +85,7 @@ def register():
     pwd_en.place(relx=0.65, rely=0.4, anchor="center", relheight=0.2, relwidth=0.5)
 
     # Register and exit buttons
-    sub_btn = Button(mreg_frame, text="Register", command=lambda: register_code(usr_en, pwd_en, reg))
+    sub_btn = Button(mreg_frame, text="Register", command=lambda: register_code(usr_en, pwd_en))
     sub_btn.place(relx=0.5, rely=0.8, anchor="center", relheight=0.2, relwidth=0.3)
     ext_btn = Button(breg_frame, text="Exit", command=reg.destroy)
     ext_btn.place(relx=0.5, rely=0.5, anchor="center", relheight=0.2, relwidth=0.3)
@@ -147,42 +147,42 @@ def login():
     log.title("Login")
 
     # Define frames for organization
-    logframe1 = Frame(log)
-    logframe1.place(relx=0, rely=0, relheight=0.3, relwidth=1)
-    logframe2 = Frame(log)
-    logframe2.place(relx=0, rely=0.3, relheight=0.4, relwidth=1)
-    logframe3 = Frame(log)
-    logframe3.place(relx=0, rely=0.7, relheight=0.3, relwidth=1)
+    log_frame1 = Frame(log)
+    log_frame1.place(relx=0, rely=0, relheight=0.3, relwidth=1)
+    log_frame2 = Frame(log)
+    log_frame2.place(relx=0, rely=0.3, relheight=0.4, relwidth=1)
+    log_frame3 = Frame(log)
+    log_frame3.place(relx=0, rely=0.7, relheight=0.3, relwidth=1)
 
     # Variables to store user input
     username_var = StringVar()
     password_var = StringVar()
 
     # Create labels, entry fields, and buttons for login
-    loglabel1 = Label(logframe1, text="Login", font=("Papyrus", 50))
-    loglabel1.place(relx=0.5, rely=0.5, anchor="center", relheight=1, relwidth=1)
-    username_label = Label(logframe2, text="Username:", font=("Papyrus", 20))
+    log_label1 = Label(log_frame1, text="Login", font=("Papyrus", 50))
+    log_label1.place(relx=0.5, rely=0.5, anchor="center", relheight=1, relwidth=1)
+    username_label = Label(log_frame2, text="Username:", font=("Papyrus", 20))
     username_label.place(relx=0.25, rely=0.1, anchor="center", relheight=0.2, relwidth=0.2)
-    password_label = Label(logframe2, text="Password:", font=("Papyrus", 20))
+    password_label = Label(log_frame2, text="Password:", font=("Papyrus", 20))
     password_label.place(relx=0.25, rely=0.4, anchor="center", relheight=0.2, relwidth=0.3)
 
-    username_entry = Entry(logframe2, textvariable=username_var)
+    username_entry = Entry(log_frame2, textvariable=username_var)
     username_entry.place(relx=0.65, rely=0.1, anchor="center", relheight=0.2, relwidth=0.5)
-    password_entry = Entry(logframe2, textvariable=password_var, show="*")  # Masked password entry
+    password_entry = Entry(log_frame2, textvariable=password_var, show="*")  # Masked password entry
     password_entry.place(relx=0.65, rely=0.4, anchor="center", relheight=0.2, relwidth=0.5)
 
     # Login and exit buttons
-    logbutton = Button(logframe2, text="Log in", command=lambda: login_code(username_entry, password_entry, log))
-    logbutton.place(relx=0.5, rely=0.8, anchor="center", relheight=0.2, relwidth=0.3)
-    exitbutton = Button(logframe3, text="Exit", command=log.destroy)
-    exitbutton.place(relx=0.5, rely=0.5, anchor="center", relheight=0.2, relwidth=0.3)
+    log_button = Button(log_frame2, text="Log in", command=lambda: login_code(username_entry, password_entry, log))
+    log_button.place(relx=0.5, rely=0.8, anchor="center", relheight=0.2, relwidth=0.3)
+    exit_button = Button(log_frame3, text="Exit", command=log.destroy)
+    exit_button.place(relx=0.5, rely=0.5, anchor="center", relheight=0.2, relwidth=0.3)
 
     log.mainloop()
 
 
 def login_code(user, passw, log_window):
     """Validate login credentials and handle login process."""
-    successfulLogin = False  # Default to failure
+    successful_login = False  # Default to failure
     username2 = user.get().strip()
     password2 = passw.get().strip()
 
@@ -197,7 +197,7 @@ def login_code(user, passw, log_window):
         messagebox.showinfo("Success", "Logged in successfully!")
         print(username2 + " has logged in at " + datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') + ".")
         log_window.destroy()
-        successfulLogin = True  # Set success flag
+        successful_login = True  # Set success flag
 
         # Attempt to connect to the controller after successful login
         try:
@@ -219,7 +219,7 @@ def login_code(user, passw, log_window):
             register()  # Open registration
 
     conn.close()
-    return successfulLogin  # Return success status
+    return successful_login  # Return success status
 
 
 def destroy(root):
