@@ -1,5 +1,4 @@
 # Import necessary modules
-import platform
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify, Response
 from datetime import datetime
 import requests
@@ -154,9 +153,6 @@ def raw_video_feed():
 def overlay_video_feed():
     def generate_frames():
         cap = cv2.VideoCapture(0)
-        frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-        frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        fps = cap.get(cv2.CAP_PROP_FPS)
 
         while video_Stream:
             ret, frame = cap.read()
