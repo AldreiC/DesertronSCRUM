@@ -1,3 +1,5 @@
+# BETA 1.0.0
+# ALL CODE IN THIS FILE WAS WRITTEN BY DESERTRON FOR THE ROBOT MOVEMENT PROJECT
 from flask import Flask, request
 from PCA9685 import PCA9685
 import time
