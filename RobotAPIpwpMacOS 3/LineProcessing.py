@@ -6,6 +6,26 @@ import numpy as np
 previous_mid_x = None
 alpha = 0.7  # Smoothing factor for exponential moving average
 
+def saturation_mask_dark(frame, saturation_threshold=0.7, value_threshold=0.8, min_percent=10, min_region_size=600):
+    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+    value = hsv[:, :, 2]
+    saturation = hsv[:, :, 1]
+    total_pixels = frame.shape[0] * frame.shape[1]
+
+    saturation_mask = saturation < saturation_threshold * 255
+    value_mask = value > value_threshold * 255
+    binary_mask = np.logical_and(saturation_mask, value_mask).astype(np.uint8) * 255
+
+    # Connected components analysis to remove small noisy blobs
+    num_labels, labels, stats, _ = cv2.connectedComponentsWithStats(binary_mask, connectivity=8)
+
+    # Filter out small regions
+    filtered_mask = np.zeros_like(binary_mask)
+    for i in range(1, num_labels):  # skip background
+        if stats[i, cv2.CC_STAT_AREA] >= min_region_size:
+            filtered_mask[labels == i] = 255
+
+    return filtered_mask
 
 def calculate_distance(x1, y1, x2, y2):
    """Calculate the Euclidean distance between two points (x1, y1) and (x2, y2)."""
